@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat App</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:black;
+    color:white;
+}
+
+.header{
+    background:#111;
+    position: fixed;
+    padding:8px;
+    display:flex;
+    align-items:center;
+    max-height: 35px;
+    width: 95%;
+}
+
+.profile{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+}
+
+.profile img{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    object-fit:cover;
+    cursor:pointer;
+}
+
+.name{
+    font-weight:bold;
+    cursor:pointer;
+    font-size: 15px;
+}
+
+.menu-btn{
+    font-size:40px;
+    cursor:pointer;
+    padding:5px 10px;
+}
+
+.menu{
+    position:fixed;
+    top:70px;
+    right:10px;
+    background:#1c1c1c;
+    border-radius:10px;
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 0 10px rgba(0,0,0,.5);
+    z-index:9999;
+}
+
+.menu div{
+    padding:10px 20px;
+    cursor:pointer;
+}
+
+.menu div:hover{
+    background:#333;
+}
+
+.chat{
+    height:85vh;
+    overflow-y:auto;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+}
+
+.message{
+    max-width:80%;
+    padding:8px 10px;
+    margin:5px 0;
+    border-radius:10px;
+    font-size:14px;
+    word-wrap:break-word;
+    cursor:pointer;
+}
+
+.selected{
+    outline:2px solid #f19;
+}
+
+.left{
+    align-self:flex-start;
+    background:#1f1f1f;
+}
+
+.right{
+    align-self:flex-end;
+    background:#f00;
+}
+
+.time{
+    font-size:10px;
+    text-align:right;
+    margin-top:3px;
+    color:#white;
+}
+
+.call-card{
+    padding:15px;
+    border-radius:3px;
+    min-width:100px;
+    height:00px;
+    position:relative;
+}
+
+.call-title{
+    font-size:15px;
+    font-weight:bold;
+    margin-top:-5px;
+}
+
+.call-status{
+    font-size:8x;
+    opacity:0.7;
+    margin-bottom:10px;
+}
+
+.call-time{
+    position:absolute;
+    right:12px;
+    bottom:10px;
+    font-size:14px;
+}
+
+.input-area{
+    position:fixed;
+    bottom:0px;
+    width:95%;
+    display:flex;
+    gap:5px;
+    padding:8px;
+    background:transparent;
+}
+
+input[type=text]{
+    flex:1;
+    border-radius:100px;
+    border:none;
+    padding:8px 8px;
+    background:#222;
+    color:white;
+    outline:none;
+}
+
+button{
+    border:none;
+    border-radius:50% 10px;
+    padding:10px 10px;
+    cursor:pointer;
+    background:#f66;
+    color:white;
+}
+
+.end{
+  background: white;
+  color: black;
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+.popup{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,0.55);
+
+    display:none;
+    justify-content:center;
+    align-items:center;
+
+    z-index:99;
+}
+
+.popup-box{
+    width:80%;
+
+    background:white;
+
+    border-radius:16px;
+
+    padding:24px;
+
+    text-align:center;
+}
+
+.popup-box h2{
+    margin-bottom:12px;
+    font-size:22px;
+}
+
+.popup-box p{
+    color:#555;
+    margin-bottom:20px;
+    font-size:15px;
+}
+
+.close-btn{
+    width:100%;
+    height:48px;
+
+    border:none;
+    border-radius:12px;
+
+    background:black;
+    color:white;
+
+    font-size:16px;
+}
+
+.chat-image{
+    display:block;
+    max-width:250px;
+    max-height:350px;
+    width:auto;
+    height:auto;
+    border-radius:10px;
+}
+
+.image-viewer{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.95);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+}
+
+.image-viewer img{
+    max-width:95vw;
+    max-height:95vh;
+    width:auto;
+    height:auto;
+    object-fit:contain;
+}
+
+.close-viewer{
+    position:absolute;
+    top:20px;
+    right:20px;
+    font-size:30px;
+    color:white;
+}
+
+.left{
+    align-self:flex-start;
+    background:#1f1f1f;
+}
+
+.right{
+    align-self:flex-end;
+    background:#f00;
+}
+
+.tumbal{
+  background: green;
+  width: 100px;
+  height: 50px;
+}
+</style>
+</head>
+<body>
+
+<div id="imageViewer" class="image-viewer" onclick="closeImage()">
+    <span class="close-viewer">✕</span>
+    <img id="fullImage">
+</div>
+<div class="header">
+    <div class="profile">
+        <img id="profileImg" src="https://i.ibb.co.com/KcQhkX75/New-Project-51-05-BDA05.png">
+        <div class="name" id="chatName">Rika</div>
+    </div>
+    <div class="menu-btn" onclick="toggleMenu()">≡</div>
+            <button class="btn end"
+        onclick="window.location.href='Call.html'">
+
+            <i class="fa-solid fa-phone"></i>
+
+        </button>
+</div>
+
+<div class="menu" id="menu">
+    <div onclick="enableSelect()">click massage</div>
+    <div onclick="editSelected()">Edit massage</div>
+    <div onclick="deleteSelected()">delete massage</div>
+    <div onclick="deleteAll()">delete all massage</div>
+            <div
+        onclick="showPopup()">About
+        </div>
+</div>
+<div class="tumbal"></div>
+
+<div class="chat" id="chatBox"></div>
+
+<div class="input-area">
+    <button onclick="toggleSide()">↺</button>
+<input
+    type="file"
+    id="imgInput"
+    accept="
+    image/*,
+    .png,
+    .jpg,
+    .jpeg,
+    .gif,
+    .webp,
+    .bmp,
+    .svg,
+    .tif,
+    .tiff,
+    .ico,
+    .avif,
+    .heic,
+    .heif,
+    .jfif"
+    hidden>
+<button onclick="document.getElementById('imgInput').click()">
+    <i class="fa-solid fa-camera"></i>
+</button>
+    <input type="text" id="msgInput" placeholder="Ketik pesan">
+    <button onclick="sendMsg()">sent</button>
+</div>
+
+<div class="popup" id="popup">
+
+    <div class="popup-box">
+
+        <h2>
+            command
+        </h2>
+
+        <p>
+            \vc not answers
+            \vc answers - 00:00
+        </p>
+        <button class="close-btn"
+        onclick="closePopup()">
+            close
+            </button>
+
+<script>
+
+let side="right";
+let selectedIndex=null;
+let selectMode=false;
+
+function toggleMenu(){
+    let menu=document.getElementById("menu");
+    menu.style.display = menu.style.display==="flex"?"none":"flex";
+}
+
+function toggleSide(){
+    side = side==="right"?"left":"right";
+}
+
+function getTime(){
+    let d=new Date();
+    return d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0');
+}
+
+function getData(){
+    return JSON.parse(localStorage.getItem("chatData")||"[]");
+}
+
+function saveData(data){
+    localStorage.setItem("chatData",JSON.stringify(data));
+}
+
+function render(){
+    let chatBox=document.getElementById("chatBox");
+    chatBox.innerHTML="";
+    let data=getData();
+
+    data.forEach((msg,i)=>{
+        let div=document.createElement("div");
+        div.className="message "+msg.side;
+
+        div.onclick=function(){
+            if(selectMode){
+                selectedIndex=i;
+                document.querySelectorAll(".message").forEach(m=>m.classList.remove("selected"));
+                div.classList.add("selected");
+            }
+        };
+   chatBox.scrollTop = chatBox.scrollHeight;
+
+        div.innerHTML=msg.content;
+
+        let time=document.createElement("div");
+        time.className="time";
+        time.innerText=msg.time+" ";
+        div.appendChild(time);
+
+        chatBox.appendChild(div);
+    });
+}
+
+function sendMsg(){
+    let input=document.getElementById("msgInput");
+    let text=input.value.trim();
+    if(text==="") return;
+
+    let data=getData();
+    data.push({
+        content:text,
+        side:side,
+        time:getTime()
+    });
+
+    saveData(data);
+    input.value="";
+    render();
+}
+
+function enableSelect(){
+    selectMode=true;
+    toggleMenu();
+}
+
+function deleteSelected(){
+    if(selectedIndex===null) return;
+    let data=getData();
+    data.splice(selectedIndex,1);
+    saveData(data);
+    selectedIndex=null;
+    selectMode=false;
+    render();
+    toggleMenu();
+}
+
+function editSelected(){
+    if(selectedIndex===null) return;
+    let data=getData();
+    let text=prompt("Edit pesan:",data[selectedIndex].content);
+    if(text){
+        data[selectedIndex].content=text;
+        saveData(data);
+        render();
+    }
+    toggleMenu();
+}
+
+function deleteAll(){
+    localStorage.removeItem("chatData");
+    render();
+    toggleMenu();
+}
+
+/* Nama & Foto */
+
+document.getElementById("chatName").onclick=function(){
+    let name=prompt("Ganti nama:",this.innerText);
+    if(name){
+        this.innerText=name;
+        localStorage.setItem("chatName",name);
+    }
+};
+
+window.onload=function(){
+    render();
+    if(localStorage.getItem("chatName")){
+        document.getElementById("chatName").innerText=localStorage.getItem("chatName");
+    }
+};
+
+function sendMsg(){
+    let input=document.getElementById("msgInput");
+    let text=input.value.trim();
+    if(text==="") return;
+
+    let data=getData();
+
+    // VC NOT ANSWERS
+    if(text.startsWith("\\vc not answers")){
+        data.push({
+            content:`
+            <div class="call-card missed">
+                <div class="call-title">Voice call</div>
+                <div class="call-status">not answers</div>
+            </div>
+            `,
+            side:side,
+            time:getTime()
+        });
+    }
+
+    // VC ANSWERS - WAKTU
+    else if(text.startsWith("\\vc answers - ")){
+        let durasi=text.replace("\\vc answers - ","");
+
+        data.push({
+            content:`
+            <div class="call-card answered">
+                <div class="call-title">Voice call • ${durasi}</div>
+                <div class="call-status">answers</div>
+            </div>
+            `,
+            side:side,
+            time:getTime()
+        });
+    }
+
+    else{
+        data.push({
+            content:text,
+            side:side,
+            time:getTime()
+        });
+    }
+
+    saveData(data);
+    input.value="";
+    render();
+}
+
+function showPopup(){
+
+    document.getElementById("popup")
+    .style.display = "flex";
+
+}
+
+function closePopup(){
+
+    document.getElementById("popup")
+    .style.display = "none";
+
+}
+
+
+document.getElementById("imgInput").addEventListener("change", function(){
+
+    const file = this.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+
+        let data = getData();
+
+        data.push({
+            content: `
+                <img
+                    src="${e.target.result}"
+                    class="chat-image"
+                    onclick="event.stopPropagation();openImage(this.src)">
+            `,
+            side: side,
+            time: getTime()
+        });
+
+        saveData(data);
+        render();
+    };
+
+    reader.readAsDataURL(file);
+    this.value="";
+});
+function openImage(src){
+    document.getElementById("imageViewer").style.display="flex";
+    document.getElementById("fullImage").src=src;
+}
+
+function closeImage(){
+    document.getElementById("imageViewer").style.display="none";
+}
+</script>
+
+</body>
+</html>
