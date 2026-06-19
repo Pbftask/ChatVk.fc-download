@@ -293,6 +293,17 @@ button{
 .active{
   background: white;
 }
+
+.sender-name{
+    color:#ff0000;
+    font-weight:bold;
+    font-size:12px;
+    margin-bottom:4px;
+}
+
+.name-message{
+    line-height:1;
+}
 </style>
 </head>
 <body>
@@ -303,12 +314,11 @@ button{
 </div>
 <div class="header">
     <div class="profile">
-        <img id="profileImg" src="https://i.ibb.co.com/tPqbLqBP/ssstik-io-1780895355426.webp">
-        <div class="name" id="chatName">Rika</div>
+        <img id="profileImg" src="https://i.ibb.co.com/842Lj96H/unnamed.jpg">
+        <div class="name" onclick="window.location.href='info.html'">group smp4 pamekasan</div>
     </div>
     <div class="menu-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
-            <button class="btn end"
-        onclick="window.location.href='Call.html'">
+            <button class="btn end">
 
             <i class="fa-solid fa-phone"></i>
 
@@ -369,8 +379,9 @@ button{
         </h2>
 
         <p>
-            \vc not answers
-            \vc answers - 00:00
+           1.\vc not answers<br>
+              \vc answers - 00:00<br>
+           2.>name/msg
         </p>
         <button class="close-btn"
         onclick="closePopup()">
@@ -398,11 +409,11 @@ function getTime(){
 }
 
 function getData(){
-    return JSON.parse(localStorage.getItem("chatData")||"[]");
+    return JSON.parse(localStorage.getItem("group")||"[]");
 }
 
 function saveData(data){
-    localStorage.setItem("chatData",JSON.stringify(data));
+    localStorage.setItem("group",JSON.stringify(data));
 }
 
 function render(){
@@ -539,13 +550,46 @@ function sendMsg(){
         });
     }
 
-    else{
+// >NAMA/pesan
+else if(text.startsWith(">")){
+
+    let isi = text.substring(1);
+
+    if(isi.includes("/")){
+
+        let nama = isi.split("/")[0];
+        let pesan = isi.split("/").slice(1).join("/");
+
+        data.push({
+            content: `
+            <div class="name-message">
+                <div class="sender-name">${nama}</div>
+                <div>${pesan}</div>
+            </div>
+            `,
+            side: side,
+            time: getTime()
+        });
+
+    }else{
+
         data.push({
             content:text,
             side:side,
             time:getTime()
         });
+
     }
+
+}
+
+else{
+    data.push({
+        content:text,
+        side:side,
+        time:getTime()
+    });
+}
 
     saveData(data);
     input.value="";
