@@ -298,7 +298,7 @@ button{
     color:#ff0000;
     font-weight:bold;
     font-size:12px;
-    margin-bottom:4px;
+    margin-bottom:2px;
 }
 
 .name-message{
@@ -389,7 +389,7 @@ button{
             </button>
 
 <script>
-
+  
 let side="right";
 let selectedIndex=null;
 let selectMode=false;
@@ -409,11 +409,16 @@ function getTime(){
 }
 
 function getData(){
-    return JSON.parse(localStorage.getItem("group")||"[]");
+    return JSON.parse(
+        localStorage.getItem("group") || "[]"
+    );
 }
 
 function saveData(data){
-    localStorage.setItem("group",JSON.stringify(data));
+    localStorage.setItem(
+        "group",
+        JSON.stringify(data)
+    );
 }
 
 function render(){
@@ -491,27 +496,33 @@ function editSelected(){
 }
 
 function deleteAll(){
-    localStorage.removeItem("chatData");
+    localStorage.removeItem("group");
     render();
     toggleMenu();
 }
 
 /* Nama & Foto */
 
-document.getElementById("chatName").onclick=function(){
-    let name=prompt("Ganti nama:",this.innerText);
-    if(name){
-        this.innerText=name;
-        localStorage.setItem("chatName",name);
-    }
-};
+const chatName = document.getElementById("chatName");
 
-window.onload=function(){
+if(chatName){
+    chatName.onclick=function(){
+        let name=prompt("Ganti nama:",this.innerText);
+        if(name){
+            this.innerText=name;
+            localStorage.setItem("chatName",name);
+        }
+    };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
     render();
+
     if(localStorage.getItem("chatName")){
-        document.getElementById("chatName").innerText=localStorage.getItem("chatName");
+        document.getElementById("chatName").innerText =
+        localStorage.getItem("chatName");
     }
-};
+});
 
 function sendMsg(){
     let input=document.getElementById("msgInput");
@@ -611,34 +622,44 @@ function closePopup(){
 }
 
 
-document.getElementById("imgInput").addEventListener("change", function(){
+document.addEventListener("DOMContentLoaded", () => {
 
-    const file = this.files[0];
-    if(!file) return;
+    const imgInput = document.getElementById("imgInput");
 
-    const reader = new FileReader();
+    if(imgInput){
 
-    reader.onload = function(e){
+        imgInput.addEventListener("change", function(){
 
-        let data = getData();
+            const file = this.files[0];
+            if(!file) return;
 
-        data.push({
-            content: `
-                <img
+            const reader = new FileReader();
+
+            reader.onload = function(e){
+
+                let data = getData();
+
+                data.push({
+                    content: `
+                    <img
                     src="${e.target.result}"
                     class="chat-image"
                     onclick="event.stopPropagation();openImage(this.src)">
-            `,
-            side: side,
-            time: getTime()
+                    `,
+                    side: side,
+                    time: getTime()
+                });
+
+                saveData(data);
+                render();
+            };
+
+            reader.readAsDataURL(file);
+            this.value="";
         });
 
-        saveData(data);
-        render();
-    };
+    }
 
-    reader.readAsDataURL(file);
-    this.value="";
 });
 function openImage(src){
     document.getElementById("imageViewer").style.display="flex";
@@ -651,9 +672,11 @@ function closeImage(){
 
 const btn = document.getElementById("button");
 
-btn.onclick = () => {
-    btn.classList.toggle("active");
-};
+if(btn){
+    btn.onclick = () => {
+        btn.classList.toggle("active");
+    };
+}
 
 document.querySelectorAll("img").forEach(img=>{
   img.addEventListener("dragstart", e=>e.preventDefault());
