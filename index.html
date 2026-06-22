@@ -295,6 +295,23 @@ button{
 .active{
   background: white;
 }
+
+.snap-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:80px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.snap-card i{
+    font-size:20px;
+}
+
+.opened{
+    opacity:.9;
+}
 </style>
 </head>
 <body>
@@ -541,6 +558,38 @@ function sendMsg(){
         });
     }
 
+// /foto1
+else if(text.toLowerCase() === "/foto1"){
+
+    data.push({
+        content: `
+        <div class="snap-card">
+            <i class="fa-regular fa-image"></i>
+            <span>Foto</span>
+        </div>
+        `,
+        side: side,
+        time: getTime()
+    });
+
+}
+
+// /foto1-opened
+else if(text.toLowerCase() === "/foto1-opened"){
+
+    data.push({
+        content: `
+        <div class="snap-card">
+            <i class="fa-regular fa-circle-check"></i>
+            <span>Opened</span>
+        </div>
+        `,
+        side: side,
+        time: getTime()
+    });
+
+}
+      
     else{
         data.push({
             content:text,
