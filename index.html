@@ -16,8 +16,14 @@ body{
     font-family:Arial, sans-serif;
     background:black;
     color:white;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color:transparent;
+    outline: none;
 }
-
+  
 .header{
     background:#111;
     position: fixed;
@@ -94,8 +100,13 @@ body{
     font-size:12px;
     word-wrap:break-word;
     cursor:pointer;
+    transition: filter .15s, transform .15s;
 }
 
+.message:active{
+  filter: brightness(0.5);
+  transform: scale(0.98);
+}
 .selected{
     outline:2px solid #f19;
 }
@@ -169,9 +180,9 @@ button{
     border-radius:50% 10px;
     padding:10px 10px;
     cursor:pointer;
-    background:#f44;
+    background:#f34;
     color:white;
-    transition: background-color 1s;
+    transition: filter .15s, transform .15s;
 }
 
 .end{
@@ -296,6 +307,7 @@ button{
   background: white;
 }
 
+  
 .snap-card{
     display:flex;
     align-items:center;
@@ -375,7 +387,7 @@ button{
     <i class="fa-solid fa-image"></i>
 </button>
     <input type="text" id="msgInput" placeholder="Ketik pesan">
-    <button onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></i></button>
+    <button onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
 </div>
 
 
