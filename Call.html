@@ -20,6 +20,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     box-sizing:border-box;
     font-family:Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 body{
@@ -280,23 +282,24 @@ body{
 <script>
 
 /* TIMER */
-
 let sec = 0;
 
 setInterval(() => {
 
     sec++;
 
-    let m = Math.floor(sec / 60);
+    let h = Math.floor(sec / 3600);
+    let m = Math.floor((sec % 3600) / 60);
     let s = sec % 60;
 
-    if(m < 10) m = "0" + m;
-    if(s < 10) s = "0" + s;
+    h = String(h).padStart(2, "0");
+    m = String(m).padStart(2, "0");
+    s = String(s).padStart(2, "0");
 
-    document.getElementById("timer")
-    .innerHTML = `${m}:${s}`;
+    document.getElementById("timer").innerHTML =
+        h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
 
-},1500);
+}, 1000);
 
 /* POPUP */
 
@@ -333,7 +336,11 @@ document.querySelectorAll(".btn").forEach(btn => {
 
 });
 
+document.addEventListener('contextmenu', e => e.preventDefault());
 
+document.querySelectorAll("img").forEach(img=>{
+  img.addEventListener("dragstart", e=>e.preventDefault());
+});
 </script>
 
 </body>

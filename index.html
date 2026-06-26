@@ -105,8 +105,9 @@ body{
 
 .message:active{
   filter: brightness(0.8);
-  transform: scale(0.99);
+  transform: scale(0.97);
 }
+
 .selected{
     outline:2px solid #f19;
 }
@@ -167,8 +168,8 @@ body{
 
 input[type=text]{
     flex:1;
-    border-radius:100px;
-    border:none;
+    border-radius:15px 5px;
+    border:2px solid #f00;
     padding:8px 8px;
     background:#222;
     color:white;
@@ -177,12 +178,11 @@ input[type=text]{
 
 button{
     border:none;
-    border-radius:50% 10px;
+    border-radius:15px 5px;
     padding:10px 10px;
     cursor:pointer;
     background:#f00;
     color:white;
-    transition: filter .15s, transform .15s;
 }
 
 .end{
@@ -322,7 +322,7 @@ button{
 }
 
 .opened{
-    opacity:.9;
+    opacity:0.5;
 }
 </style>
 </head>
@@ -590,13 +590,29 @@ else if(text.toLowerCase() === "/foto1"){
 }
 
 // /foto1-opened
-else if(text.toLowerCase() === "/foto1-opened"){
+else if(text.toLowerCase() === "/file-opened"){
 
     data.push({
         content: `
         <div class="snap-card">
             <i class="fa-regular fa-circle-check"></i>
             <span>Opened</span>
+        </div>
+        `,
+        side: side,
+        time: getTime()
+    });
+
+}
+
+  // /video1
+else if(text.toLowerCase() === "/video1"){
+
+    data.push({
+        content: `
+        <div class="snap-card">
+            <i class="fa-solid fa-video"></i>
+            <span>Video</span>
         </div>
         `,
         side: side,
