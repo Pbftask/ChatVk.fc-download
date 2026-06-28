@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>TikTok Clone</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #000;
+    --surface: #161823;
+    --surface2: #1e2030;
+    --accent: #fe2c55;
+    --blue: #20d5ec;
+    --verified: #20c;
+    --text: #fff;
+    --muted: rgba(255,255,255,0.6);
+    --border: rgba(255,255,255,0.12);
+    --radius: 16px;
+  }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+  }
+
+  /* ── FEED ── */
+  #feed {
+    width: 100%; height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.38s cubic-bezier(.4,0,.2,1), opacity 0.38s;
+  }
+  .slide.active  { transform: translateY(0);    opacity: 1; z-index: 2; }
+  .slide.above   { transform: translateY(-100%); opacity: 0; z-index: 1; }
+  .slide.below   { transform: translateY(100%);  opacity: 0; z-index: 1; }
+
+  .slide video {
+    width: 150%; height: 90%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* gradient overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,0) 40%),
+      linear-gradient(to bottom, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 18%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* ── INFO (bottom-left) ── */
+  .info {
+    position: absolute;
+    bottom: 90px;
+    left: 0;
+    right: 80px;
+    z-index: 4;
+    padding: 0 16px;
+  }
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+  .avatar-placeholder {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .username-wrap { display: flex; align-items: center; gap: 5px; }
+  .username { font-weight: 700; font-size: 15px; }
+  .badge-verified {
+    width: 13px; height: 13px;
+    background: var(--verified);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .caption {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: rgba(255,255,255,.9);
+    margin-left: 56px;
+    margin-top: -4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── ACTIONS (right) ── */
+  .actions {
+    position: absolute;
+    right: 10px;
+    bottom: 90px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .action-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; cursor: pointer;
+    transition: transform .15s;
+  }
+  .action-btn:active { transform: scale(.85); }
+  .action-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .action-icon.liked { color: var(--accent); }
+  .action-icon.saved { color: #ffd700; }
+  .action-label { font-size: 11px; color: #fff; font-weight: 600; }
+  .delete-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; cursor: pointer;
+    transition: transform .15s;
+  }
+  .delete-btn:active { transform: scale(.85); }
+  .delete-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,60,60,.18);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #ff4d4d;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.5), transparent);
+    pointer-events: none;
+  }
+  .topbar > * { pointer-events: auto; }
+  .btn-add {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border: none; border-radius: 50%;
+    color: #fff; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(254,44,85,.5);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-add:active { transform: scale(.9); box-shadow: 0 2px 8px rgba(254,44,85,.4); }
+  .app-title {
+    font-size: 17px; font-weight: 700; letter-spacing: .5px;
+    text-shadow: 0 1px 6px rgba(0,0,0,.6);
+  }
+  .sound-btn {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(8px);
+    border: none; border-radius: 50%;
+    color: #fff; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* ── EMPTY STATE ── */
+  #empty-state {
+    position: fixed; inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 5;
+    background: var(--bg);
+  }
+  #empty-state i { font-size: 64px; color: var(--border); }
+  #empty-state p { color: var(--muted); font-size: 16px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn .2s;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    width: 100%;
+    max-width: 500px;
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 24px 20px 36px;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp .32s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    margin: 0 auto 22px;
+  }
+  .modal-title {
+    font-size: 18px; font-weight: 700;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 8px; display: block;
+    font-weight: 600; letter-spacing: .3px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: rgba(255,255,255,.3); }
+
+  /* file upload zone */
+  .upload-zone {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .upload-zone:hover, .upload-zone.has-file { border-color: var(--accent); }
+  .upload-zone i { font-size: 28px; color: var(--muted); }
+  .upload-zone span { font-size: 13px; color: var(--muted); text-align: center; }
+  .upload-zone .file-name { font-size: 12px; color: var(--blue); font-weight: 600; word-break: break-all; text-align: center; }
+
+  /* avatar preview */
+  .avatar-upload-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .avatar-preview {
+    width: 72px; height: 72px; border-radius: 50%;
+    object-fit: cover; border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+  }
+  .avatar-preview-placeholder {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color .2s;
+  }
+  .avatar-preview-placeholder:hover { border-color: var(--accent); }
+  .avatar-preview-placeholder i { font-size: 26px; color: var(--muted); }
+
+  /* toggle */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+  }
+  .toggle-label { font-size: 15px; font-weight: 500; }
+  .toggle-switch {
+    position: relative; width: 50px; height: 28px;
+    cursor: pointer;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,.15);
+    border-radius: 99px;
+    transition: background .25s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 22px; height: 22px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .25s;
+  }
+  .toggle-switch input:checked + .slider { background: var(--verified); }
+  .toggle-switch input:checked + .slider::before { transform: translateX(22px); }
+
+  /* submit */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    border: none; border-radius: 10px;
+    color: #fff; font-size: 16px; font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity .15s, transform .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-submit:active { opacity: .85; transform: scale(.98); }
+  .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* comment modal */
+  .comment-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(4px);
+    z-index: 110;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .comment-overlay.open { display: flex; }
+  .comment-sheet {
+    width: 100%; max-width: 500px;
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 20px 16px 32px;
+    max-height: 70vh;
+    display: flex; flex-direction: column;
+    animation: slideUp .3s cubic-bezier(.4,0,.2,1);
+  }
+  .comment-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .comment-header h3 { font-size: 16px; font-weight: 700; }
+  .close-btn {
+    background: none; border: none;
+    color: var(--muted); font-size: 20px; cursor: pointer;
+  }
+  .comments-list { flex: 1; overflow-y: auto; margin-bottom: 16px; }
+  .comment-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: rgba(255,255,255,.85);
+  }
+  .comment-item .c-user { font-weight: 700; color: #fff; margin-bottom: 3px; font-size: 13px; }
+  .comment-input-row {
+    display: flex; gap: 10px;
+  }
+  .comment-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 99px;
+    color: #fff; font-size: 14px;
+    padding: 10px 16px;
+    outline: none;
+  }
+  .comment-input:focus { border-color: var(--accent); }
+  .send-btn {
+    background: var(--accent); border: none; border-radius: 50%;
+    width: 42px; height: 42px; color: #fff; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    color: #fff; font-size: 13px; font-weight: 600;
+    padding: 9px 20px;
+    border-radius: 99px;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* progress bar */
+  .progress-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 5px;
+    background: var(--accent);
+    z-index: 4;
+    transition: width .3s linear;
+    width: 0%;
+  }
+
+  /* mute indicator */
+  .mute-indicator {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,.6);
+    border-radius: 50%;
+    width: 70px; height: 70px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .mute-indicator.show { opacity: 1; }
+
+  /* loading spinner */
+  .spinner {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; z-index: 300;
+  }
+  .spinner-ring {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  @media (min-width: 500px) {
+    #feed { max-width: 400px; margin: 0 auto; }
+    .topbar { max-width: 400px; left: 50%; transform: translateX(-50%); }
+    .toast { max-width: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="spinner" id="spinner">
+  <div class="spinner-ring"></div>
+</div>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <button class="btn-add" id="btnAdd" title="Upload"><i class="fa-solid fa-eye-slash"></i></button>
+  <span class="app-title">ChatVl</span>
+  <button class="sound-btn" id="soundBtn" title="Toggle mute"><i class="fa-solid fa-volume-xmark"></i></button>
+</div>
+
+<!-- Feed -->
+<div id="feed"></div>
+
+<!-- Empty State -->
+<div id="empty-state">
+  <i class="fa-solid fa-film"></i>
+  <p>Belum ada video. Tekan <strong style="color:var(--accent)">+</strong> untuk upload!</p>
+</div>
+
+<!-- Mute indicator -->
+<div class="mute-indicator" id="muteIndicator"><i class="fa-solid fa-volume-xmark"></i></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title"><i class="fa-solid fa-circle-up" style="color:var(--accent);margin-right:8px"></i>Report akun</div>
+
+    <div class="form-group">
+      <label class="form-label">Foto Profil</label>
+      <div class="avatar-upload-wrap">
+        <div class="avatar-preview-placeholder" id="avatarPlaceholder" onclick="document.getElementById('avatarInput').click()">
+          <i class="fa-solid fa-user-circle"></i>
+        </div>
+        <img id="avatarPreviewImg" class="avatar-preview" style="display:none" onclick="document.getElementById('avatarInput').click()" alt="avatar" />
+        <span style="font-size:12px;color:var(--muted)">Ketuk untuk pilih foto</span>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-input" id="inputUsername" placeholder="@username" maxlength="30" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Verifikasi Akun</label>
+      <div class="toggle-row">
+        <span class="toggle-label">Akun Terverifikasi ✓</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleVerified" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Upload Video</label>
+      <div class="upload-zone" id="videoZone" onclick="document.getElementById('videoInput').click()">
+        <i class="fa-solid fa-video"></i>
+        <span>Ketuk untuk pilih video dari galeri</span>
+        <span class="file-name" id="videoFileName" style="display:none"></span>
+        <input type="file" id="videoInput" accept="video/*" style="display:none" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Judul Video</label>
+      <input type="text" class="form-input" id="inputCaption" placeholder="Tulis judul video…" maxlength="150" />
+    </div>
+
+    <button class="btn-submit" id="btnUpload">
+      <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+    </button>
+  </div>
+</div>
+
+<!-- Comment Modal -->
+<div class="comment-overlay" id="commentModal">
+  <div class="comment-sheet">
+    <div class="comment-header">
+      <h3><i class="fa-solid fa-comment-dots" style="color:var(--accent);margin-right:6px"></i>Komentar</h3>
+      <button class="close-btn" id="closeComment"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="comments-list" id="commentsList"></div>
+    <div class="comment-input-row">
+      <input class="comment-input" id="commentInput" placeholder="Tulis komentar…" />
+      <button class="send-btn" id="sendComment"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════
+   IndexedDB
+══════════════════════════════════════ */
+const DB_NAME = 'tiktok_clone_db';
+const DB_VER  = 3;
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('posts')) {
+        const s = d.createObjectStore('posts', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('score', 'score', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('watched')) {
+        d.createObjectStore('watched', { keyPath: 'postId' });
+      }
+      if (!d.objectStoreNames.contains('meta')) {
+        d.createObjectStore('meta', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbTransaction(storeName, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const tx   = db.transaction(storeName, mode);
+    const store = tx.objectStore(storeName);
+    const req  = fn(store);
+    if (req) {
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror   = e => reject(e.target.error);
+    }
+    tx.oncomplete = () => { if (!req) resolve(); };
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+function getAllPosts() {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('posts', 'readonly');
+    const store = tx.objectStore('posts');
+    const req   = store.getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function addPost(post) {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('posts', 'readwrite');
+    const store = tx.objectStore('posts');
+    const req   = store.add(post);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function updatePost(post) {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('posts', 'readwrite');
+    const store = tx.objectStore('posts');
+    const req   = store.put(post);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function deletePost(id) {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('posts', 'readwrite');
+    const store = tx.objectStore('posts');
+    const req   = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function getWatchedIds() {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('watched', 'readonly');
+    const store = tx.objectStore('watched');
+    const req   = store.getAllKeys();
+    req.onsuccess = e => resolve(e.target.result.map(k => k));
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function addWatched(postId) {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('watched', 'readwrite');
+    const store = tx.objectStore('watched');
+    const req   = store.put({ postId });
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function clearWatched() {
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction('watched', 'readwrite');
+    const store = tx.objectStore('watched');
+    const req   = store.clear();
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+/* ══════════════════════════════════════
+   Fisher-Yates Shuffle
+══════════════════════════════════════ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ══════════════════════════════════════
+   FYP Algorithm
+   70% from top-scored, 30% random
+══════════════════════════════════════ */
+function buildFYP(posts, watchedIds, lastId) {
+  if (!posts.length) return [];
+  if (posts.length === 1) return [posts[0]];
+
+  // Exclude last shown to prevent back-to-back
+  const pool = posts.filter(p => p.id !== lastId);
+  if (!pool.length) return posts; // only 1 unique post
+
+  // Exclude watched, fallback to all if empty
+  let unwatched = pool.filter(p => !watchedIds.includes(p.id));
+  if (!unwatched.length) unwatched = pool;
+
+  // Split 70/30
+  const sorted = [...unwatched].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const cut70  = Math.max(1, Math.ceil(sorted.length * 0.7));
+  const top70  = sorted.slice(0, cut70);
+  const rest30 = sorted.slice(cut70);
+
+  // Pick from top70 (weighted random)
+  const topShuffle = shuffle(top70);
+  const rstShuffle = shuffle(rest30);
+
+  // Interleave: 2 from top, 1 from rest, repeat
+  const result = [];
+  let ti = 0, ri = 0;
+  while (ti < topShuffle.length || ri < rstShuffle.length) {
+    if (ti < topShuffle.length)  result.push(topShuffle[ti++]);
+    if (ti < topShuffle.length)  result.push(topShuffle[ti++]);
+    if (ri < rstShuffle.length)  result.push(rstShuffle[ri++]);
+  }
+  return result;
+}
+
+/* ══════════════════════════════════════
+   App State
+══════════════════════════════════════ */
+let posts        = [];
+let queue        = [];      // ordered queue for current session
+let queueIdx     = 0;       // current position in queue
+let isMuted      = true;
+let activeSlide  = null;
+let commentPost  = null;
+let watchedIds   = [];
+let lastShownId  = null;
+
+const feed          = document.getElementById('feed');
+const emptyState    = document.getElementById('empty-state');
+const spinner       = document.getElementById('spinner');
+const toast         = document.getElementById('toast');
+const muteIndicator = document.getElementById('muteIndicator');
+
+/* ══════════════════════════════════════
+   Toast
+══════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+/* ══════════════════════════════════════
+   Blob → Object URL helpers
+══════════════════════════════════════ */
+function blobToUrl(blob) {
+  if (!blob) return null;
+  return URL.createObjectURL(blob);
+}
+
+/* ══════════════════════════════════════
+   Build Slide DOM
+══════════════════════════════════════ */
+function buildSlide(post) {
+  const el = document.createElement('div');
+  el.className = 'slide below';
+  el.dataset.id = post.id;
+
+  // Video
+  const videoUrl = blobToUrl(post.videoBlob);
+  const vid = document.createElement('video');
+  vid.src = videoUrl;
+  vid.loop = true;
+  vid.muted = isMuted;
+  vid.playsInline = true;
+  vid.preload = 'metadata';
+  el.appendChild(vid);
+
+  // Progress bar
+  const prog = document.createElement('div');
+  prog.className = 'progress-bar';
+  el.appendChild(prog);
+  vid.addEventListener('timeupdate', () => {
+    if (vid.duration) prog.style.width = (vid.currentTime / vid.duration * 100) + '%';
+  });
+
+  // Overlay
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  el.appendChild(ov);
+
+  // Info
+  const info = document.createElement('div');
+  info.className = 'info';
+
+  const userRow = document.createElement('div');
+  userRow.className = 'user-row';
+
+  // Avatar
+  if (post.avatarBlob) {
+    const img = document.createElement('img');
+    img.className = 'avatar';
+    img.src = blobToUrl(post.avatarBlob);
+    img.alt = 'avatar';
+    userRow.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'avatar-placeholder';
+    ph.innerHTML = '👤';
+    userRow.appendChild(ph);
+  }
+
+  const nameWrap = document.createElement('div');
+  nameWrap.className = 'username-wrap';
+  const uname = document.createElement('span');
+  uname.className = 'username';
+  uname.textContent = '@' + (post.username || 'anonim');
+  nameWrap.appendChild(uname);
+  if (post.verified) {
+    const badge = document.createElement('span');
+    badge.className = 'badge-verified';
+    badge.innerHTML = '<i class="fa-solid fa-check" style="font-size:9px"></i>';
+    nameWrap.appendChild(badge);
+  }
+  userRow.appendChild(nameWrap);
+  info.appendChild(userRow);
+
+  const cap = document.createElement('div');
+  cap.className = 'caption';
+  cap.textContent = post.caption || '';
+  info.appendChild(cap);
+  el.appendChild(info);
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+
+  // Like
+  const likeBtn = document.createElement('div');
+  likeBtn.className = 'action-btn';
+  const likeIcon = document.createElement('div');
+  likeIcon.className = 'action-icon' + (post.liked ? ' liked' : '');
+  likeIcon.innerHTML = '<i class="fa-solid fa-heart"></i>';
+  const likeLabel = document.createElement('span');
+  likeLabel.className = 'action-label';
+  likeLabel.textContent = post.likes || 0;
+  likeBtn.appendChild(likeIcon);
+  likeBtn.appendChild(likeLabel);
+  likeBtn.onclick = () => toggleLike(post, likeIcon, likeLabel);
+  actions.appendChild(likeBtn);
+
+  // Comment
+  const cmtBtn = document.createElement('div');
+  cmtBtn.className = 'action-btn';
+  const cmtIcon = document.createElement('div');
+  cmtIcon.className = 'action-icon';
+  cmtIcon.innerHTML = '<i class="fa-solid fa-comment-dots"></i>';
+  const cmtLabel = document.createElement('span');
+  cmtLabel.className = 'action-label';
+  cmtLabel.textContent = (post.comments || []).length;
+  cmtBtn.appendChild(cmtIcon);
+  cmtBtn.appendChild(cmtLabel);
+  cmtBtn.onclick = () => openComments(post, cmtLabel);
+  actions.appendChild(cmtBtn);
+
+  // Save
+  const saveBtn = document.createElement('div');
+  saveBtn.className = 'action-btn';
+  const saveIcon = document.createElement('div');
+  saveIcon.className = 'action-icon' + (post.saved ? ' saved' : '');
+  saveIcon.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
+  const saveLabel = document.createElement('span');
+  saveLabel.className = 'action-label';
+  saveLabel.textContent = post.saves || 0;
+  saveBtn.appendChild(saveIcon);
+  saveBtn.appendChild(saveLabel);
+  saveBtn.onclick = () => toggleSave(post, saveIcon, saveLabel);
+  actions.appendChild(saveBtn);
+
+  // Share
+  const shareBtn = document.createElement('div');
+  shareBtn.className = 'action-btn';
+  const shareIcon = document.createElement('div');
+  shareIcon.className = 'action-icon';
+  shareIcon.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
+  const shareLabel = document.createElement('span');
+  shareLabel.className = 'action-label';
+  shareLabel.textContent = 'Share';
+  shareBtn.appendChild(shareIcon);
+  shareBtn.appendChild(shareLabel);
+  shareBtn.onclick = () => showToast('Link disalin! 🔗');
+  actions.appendChild(shareBtn);
+
+  // Delete
+  const delBtn = document.createElement('div');
+  delBtn.className = 'delete-btn';
+  const delIcon = document.createElement('div');
+  delIcon.className = 'delete-icon';
+  delIcon.innerHTML = '<i class="fa-solid fa-ban"></i>';
+  const delLabel = document.createElement('span');
+  delLabel.className = 'action-label';
+  delLabel.textContent = 'Block';
+  delBtn.appendChild(delIcon);
+  delBtn.appendChild(delLabel);
+  delBtn.onclick = () => confirmDelete(post);
+  actions.appendChild(delBtn);
+
+  el.appendChild(actions);
+  return el;
+}
+
+/* ══════════════════════════════════════
+   Render Feed
+══════════════════════════════════════ */
+async function buildQueue() {
+  watchedIds = await getWatchedIds();
+  queue      = buildFYP(posts, watchedIds, lastShownId);
+  queueIdx   = 0;
+}
+
+let prevSlideEl  = null;
+let activeSlideEl = null;
+
+async function renderCurrent(direction) {
+  if (!queue.length) {
+    emptyState.style.display = 'flex';
+    feed.innerHTML = '';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  const post = queue[queueIdx];
+  lastShownId = post.id;
+
+  // Mark watched
+  if (!watchedIds.includes(post.id)) {
+    watchedIds.push(post.id);
+    await addWatched(post.id);
+  }
+
+  // Check if all watched → reset
+  if (watchedIds.length >= posts.length) {
+    await clearWatched();
+    watchedIds = [];
+  }
+
+  const newSlide = buildSlide(post);
+  feed.appendChild(newSlide);
+
+  // Pause old
+  if (activeSlideEl) {
+    const oldVid = activeSlideEl.querySelector('video');
+    if (oldVid) oldVid.pause();
+
+    if (direction === 'up') {
+      activeSlideEl.className = 'slide above';
+    } else {
+      activeSlideEl.className = 'slide below';
+    }
+    // Remove old after transition
+    const toRemove = activeSlideEl;
+    setTimeout(() => { if (toRemove.parentNode) toRemove.parentNode.removeChild(toRemove); }, 400);
+  }
+
+  // Activate new
+  newSlide.className = direction === 'up' ? 'slide below' : 'slide above';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      newSlide.className = 'slide active';
+      activeSlideEl = newSlide;
+      const v = newSlide.querySelector('video');
+      v.muted = isMuted;
+      v.play().catch(() => {});
+    });
+  });
+}
+
+async function goNext() {
+  if (!queue.length) return;
+  // If at end of queue, rebuild
+  if (queueIdx >= queue.length - 1) {
+    await buildQueue();
+  } else {
+    queueIdx++;
+  }
+  await renderCurrent('up');
+}
+
+async function goPrev() {
+  if (!queue.length) return;
+  if (queueIdx > 0) {
+    queueIdx--;
+    await renderCurrent('down');
+  }
+}
+
+/* ══════════════════════════════════════
+   Actions
+══════════════════════════════════════ */
+async function toggleLike(post, iconEl, labelEl) {
+  post.liked = !post.liked;
+  post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
+  post.score = (post.score || 0) + (post.liked ? 5 : -5);
+  iconEl.className = 'action-icon' + (post.liked ? ' liked' : '');
+  labelEl.textContent = post.likes;
+  await updatePost(post);
+  // update local cache
+  const idx = posts.findIndex(p => p.id === post.id);
+  if (idx !== -1) posts[idx] = post;
+  showToast(post.liked ? '❤️ Disukai!' : 'Batal suka');
+}
+
+async function toggleSave(post, iconEl, labelEl) {
+  post.saved = !post.saved;
+  post.saves = (post.saves || 0) + (post.saved ? 1 : -1);
+  post.score = (post.score || 0) + (post.saved ? 10 : -10);
+  iconEl.className = 'action-icon' + (post.saved ? ' saved' : '');
+  labelEl.textContent = post.saves;
+  await updatePost(post);
+  const idx = posts.findIndex(p => p.id === post.id);
+  if (idx !== -1) posts[idx] = post;
+  showToast(post.saved ? '🔖 Disimpan!' : 'Dihapus dari simpanan');
+}
+
+async function confirmDelete(post) {
+  if (!confirm(`Hapus video "@${post.username}"?`)) return;
+  await deletePost(post.id);
+  posts = posts.filter(p => p.id !== post.id);
+  queue = queue.filter(p => p.id !== post.id);
+  showToast('🗑️ Video dihapus');
+  if (!queue.length || queueIdx >= queue.length) {
+    await buildQueue();
+    queueIdx = 0;
+  }
+  await renderCurrent('up');
+}
+
+/* ══════════════════════════════════════
+   Comments
+══════════════════════════════════════ */
+const commentModal  = document.getElementById('commentModal');
+const commentsList  = document.getElementById('commentsList');
+const commentInput  = document.getElementById('commentInput');
+const closeComment  = document.getElementById('closeComment');
+const sendCommentBtn = document.getElementById('sendComment');
+
+function openComments(post, labelEl) {
+  commentPost = post;
+  renderComments(post);
+  commentModal.classList.add('open');
+}
+
+function renderComments(post) {
+  commentsList.innerHTML = '';
+  if (!(post.comments || []).length) {
+    commentsList.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:16px 0;text-align:center">Belum ada komentar. Jadilah yang pertama!</div>';
+    return;
+  }
+  post.comments.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'comment-item';
+    div.innerHTML = `<div class="c-user">@${c.user}</div>${c.text}`;
+    commentsList.appendChild(div);
+  });
+}
+
+closeComment.onclick = () => commentModal.classList.remove('open');
+commentModal.onclick = e => { if (e.target === commentModal) commentModal.classList.remove('open'); };
+
+sendCommentBtn.onclick = async () => {
+  const txt = commentInput.value.trim();
+  if (!txt || !commentPost) return;
+  if (!commentPost.comments) commentPost.comments = [];
+  commentPost.comments.push({ user: 'User', text: txt });
+  commentPost.score = (commentPost.score || 0) + 3;
+  await updatePost(commentPost);
+  const idx = posts.findIndex(p => p.id === commentPost.id);
+  if (idx !== -1) posts[idx] = commentPost;
+  // Update comment count in active slide
+  if (activeSlideEl && parseInt(activeSlideEl.dataset.id) === commentPost.id) {
+    const labels = activeSlideEl.querySelectorAll('.action-label');
+    labels[1].textContent = commentPost.comments.length;
+  }
+  commentInput.value = '';
+  renderComments(commentPost);
+  showToast('💬 Komentar dikirim!');
+};
+
+commentInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendCommentBtn.click(); });
+
+/* ══════════════════════════════════════
+   Upload Modal
+══════════════════════════════════════ */
+const uploadModal   = document.getElementById('uploadModal');
+const btnAdd        = document.getElementById('btnAdd');
+const avatarInput   = document.getElementById('avatarInput');
+const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+const avatarPreviewImg  = document.getElementById('avatarPreviewImg');
+const videoInput    = document.getElementById('videoInput');
+const videoZone     = document.getElementById('videoZone');
+const videoFileName = document.getElementById('videoFileName');
+const inputUsername = document.getElementById('inputUsername');
+const inputCaption  = document.getElementById('inputCaption');
+const toggleVerified = document.getElementById('toggleVerified');
+const btnUpload     = document.getElementById('btnUpload');
+
+let avatarBlob = null;
+let videoBlob  = null;
+
+btnAdd.onclick = () => { uploadModal.classList.add('open'); resetForm(); };
+uploadModal.onclick = e => { if (e.target === uploadModal) uploadModal.classList.remove('open'); };
+
+function resetForm() {
+  avatarBlob = null; videoBlob = null;
+  avatarPreviewImg.style.display = 'none';
+  avatarPreviewImg.src = '';
+  avatarPlaceholder.style.display = 'flex';
+  videoFileName.style.display = 'none';
+  videoFileName.textContent = '';
+  videoZone.classList.remove('has-file');
+  inputUsername.value = '';
+  inputCaption.value  = '';
+  toggleVerified.checked = false;
+}
+
+avatarInput.onchange = () => {
+  const file = avatarInput.files[0];
+  if (!file) return;
+  avatarBlob = file;
+  const url  = URL.createObjectURL(file);
+  avatarPreviewImg.src = url;
+  avatarPreviewImg.style.display = 'block';
+  avatarPlaceholder.style.display = 'none';
+};
+
+videoInput.onchange = () => {
+  const file = videoInput.files[0];
+  if (!file) return;
+  videoBlob = file;
+  videoFileName.textContent = file.name;
+  videoFileName.style.display = 'block';
+  videoZone.classList.add('has-file');
+};
+
+btnUpload.onclick = async () => {
+  const username = inputUsername.value.trim();
+  const caption  = inputCaption.value.trim();
+  if (!username) { showToast('⚠️ Masukkan username!'); return; }
+  if (!videoBlob)  { showToast('⚠️ Pilih video dulu!'); return; }
+
+  btnUpload.disabled = true;
+  btnUpload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
+
+  const post = {
+    username,
+    caption,
+    verified: toggleVerified.checked,
+    avatarBlob: avatarBlob || null,
+    videoBlob,
+    likes: 0, liked: false,
+    saves: 0, saved: false,
+    comments: [],
+    score: 0,
+    createdAt: Date.now()
+  };
+
+  try {
+    const id = await addPost(post);
+    post.id = id;
+    posts.push(post);
+    uploadModal.classList.remove('open');
+    showToast('✅ Video berhasil diupload!');
+    // Rebuild queue with new post
+    await buildQueue();
+    await renderCurrent('up');
+  } catch(err) {
+    console.error(err);
+    showToast('❌ Gagal menyimpan. Coba lagi.');
+  }
+
+  btnUpload.disabled = false;
+  btnUpload.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload';
+};
+
+/* ══════════════════════════════════════
+   Sound Toggle
+══════════════════════════════════════ */
+const soundBtn = document.getElementById('soundBtn');
+soundBtn.onclick = () => {
+  isMuted = !isMuted;
+  soundBtn.innerHTML = isMuted
+    ? '<i class="fa-solid fa-volume-xmark"></i>'
+    : '<i class="fa-solid fa-volume-high"></i>';
+  if (activeSlideEl) {
+    const v = activeSlideEl.querySelector('video');
+    if (v) v.muted = isMuted;
+  }
+  muteIndicator.innerHTML = isMuted
+    ? '<i class="fa-solid fa-volume-xmark"></i>'
+    : '<i class="fa-solid fa-volume-high"></i>';
+  muteIndicator.classList.add('show');
+  setTimeout(() => muteIndicator.classList.remove('show'), 900);
+};
+
+/* ══════════════════════════════════════
+   Swipe / Scroll / Keyboard
+══════════════════════════════════════ */
+let touchStartY = 0;
+let touchDelta  = 0;
+let isSwiping   = false;
+const SWIPE_THRESHOLD = 60;
+
+feed.addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+  isSwiping   = false;
+  touchDelta  = 0;
+}, { passive: true });
+
+feed.addEventListener('touchmove', e => {
+  touchDelta = touchStartY - e.touches[0].clientY;
+  if (Math.abs(touchDelta) > 10) isSwiping = true;
+}, { passive: true });
+
+feed.addEventListener('touchend', async () => {
+  if (!isSwiping) return;
+  if (touchDelta > SWIPE_THRESHOLD) {
+    await goNext();
+  } else if (touchDelta < -SWIPE_THRESHOLD) {
+    await goPrev();
+  }
+});
+
+// Mouse wheel
+let wheelLocked = false;
+window.addEventListener('wheel', async e => {
+  if (wheelLocked) return;
+  wheelLocked = true;
+  if (e.deltaY > 30) await goNext();
+  else if (e.deltaY < -30) await goPrev();
+  setTimeout(() => wheelLocked = false, 500);
+}, { passive: true });
+
+// Keyboard
+window.addEventListener('keydown', async e => {
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') await goNext();
+  if (e.key === 'ArrowUp'   || e.key === 'PageUp')   await goPrev();
+});
+
+/* ══════════════════════════════════════
+   Init
+══════════════════════════════════════ */
+async function init() {
+  await openDB();
+  posts = await getAllPosts();
+  await buildQueue();
+  spinner.style.display = 'none';
+  if (queue.length) {
+    await renderCurrent('up');
+  } else {
+    emptyState.style.display = 'flex';
+  }
+}
+
+init().catch(err => {
+  console.error('Init error:', err);
+  spinner.style.display = 'none';
+});
+</script>
+</body>
+</html>
