@@ -494,8 +494,8 @@
 
 <!-- Top Bar -->
 <div class="topbar">
-  <button class="btn-add" id="btnAdd" title="Upload"><i class="fa-solid fa-plus"></i></button>
-  <span class="app-title">For You</span>
+  <button class="btn-add" id="btnAdd" title="Upload"><i class="fa-solid fa-eye-slash"></i></button>
+  <span class="app-title">ChatVl</span>
   <button class="sound-btn" id="soundBtn" title="Toggle mute"><i class="fa-solid fa-volume-xmark"></i></button>
 </div>
 
@@ -923,10 +923,10 @@ function buildSlide(post) {
   delBtn.className = 'delete-btn';
   const delIcon = document.createElement('div');
   delIcon.className = 'delete-icon';
-  delIcon.innerHTML = '<i class="fa-solid fa-trash"></i>';
+  delIcon.innerHTML = '<i class="fa-solid fa-ban"></i>';
   const delLabel = document.createElement('span');
   delLabel.className = 'action-label';
-  delLabel.textContent = 'Hapus';
+  delLabel.textContent = 'Ban';
   delBtn.appendChild(delIcon);
   delBtn.appendChild(delLabel);
   delBtn.onclick = () => confirmDelete(post);
