@@ -337,6 +337,31 @@ button{
   height:100%;
 }
 
+.rank{
+    position:relative;
+    width:15px;
+    margin-right: 145px;
+}
+  
+.rank-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+.verify-fx{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+
+    mix-blend-mode:screen; /* atau lighten */
+    opacity:1;
+    pointer-events:none;
+}
+  
 </style>
 </head>
 <body>
@@ -350,9 +375,13 @@ button{
         <img id="profileImg" src="https://i.ibb.co.com/tPqbLqBP/ssstik-io-1780895355426.webp">
         <div class="name" id="chatName">RIKA</div>
     </div>
-  <div class="verify">
-      <img src="https://i.ibb.co.com/xqRZjfPX/New-Project-167-0-CA9-E6-E.png" alt="Lovers">
-    </div>
+   <div class="rank">
+    <img src="https://i.ibb.co.com/39Ckx60n/New-Project-172-9-B3-C93-D.png" class="rank-img">
+
+       <video class="verify-fx" autoplay muted loop playsinline>
+        <source src="animasi.mp4" type="video/mp4">
+       </video>
+   </div>
     <div class="menu-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></div>
             <button class="btn end"
         onclick="window.location.href='Call.html'">
