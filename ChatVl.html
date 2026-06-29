@@ -98,6 +98,31 @@ body{
   height:100%;
 }
 
+.rank{
+    position:relative;
+    width:15px;
+    margin-left: -9px;
+}
+  
+.rank-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+.verify-fx{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+
+    mix-blend-mode:screen; /* atau lighten */
+    opacity:1;
+    pointer-events:none;
+}
+  
 .tumbal{
   background: black;
   width: 100%;
@@ -117,6 +142,8 @@ body{
   text-align: center;
   padding: 30px;
 }
+
+
 </style>
 </head>
 
@@ -153,9 +180,13 @@ body{
         <img src="https://i.ibb.co.com/tPqbLqBP/ssstik-io-1780895355426.webp">
     </div>
     <div class="name">RIKA</div>
-    <div class="verify">
-      <img src="https://i.ibb.co.com/xqRZjfPX/New-Project-167-0-CA9-E6-E.png" alt="Lovers">
-    </div>
+   <div class="rank">
+    <img src="https://i.ibb.co.com/39Ckx60n/New-Project-172-9-B3-C93-D.png" class="rank-img">
+
+       <video class="verify-fx" autoplay muted loop playsinline>
+        <source src="animasi.mp4" type="video/mp4">
+       </video>
+   </div>
     <div class="pin">
       saved
     </div>
