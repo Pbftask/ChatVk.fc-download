@@ -52,6 +52,7 @@ body{
 .name{
     font-size:15px;
     margin-bottom: 8px;
+    margin-left:25px;
 }
 .verify{
   width:15px;
@@ -151,16 +152,49 @@ text-shadow:0 0 5px black;
   text-align: center;
   padding: 30px;
 }
+
+.border{
+  position:relative;
+  width:80px;
+  margin-left:-125px;
+}
+
+.border-img{
+    width:150%;
+    height:150%;
+    object-fit:contain;
+    display:block;
+}
+
+.border-fx{
+    position:absolute;
+    inset:0;
+    width:150%;
+    height:100%;
+    object-fit:cover;
+
+    mix-blend-mode:screen; /* atau lighten */
+    opacity:1;
+    pointer-events:none;
+}
+
 </style>
 </head>
 <body>
   <div class="tag">
-    <h2>ChatVl Private</h2>
+    <h2>ChatVl</h2>
   </div>
 <a class="contact">
     <div class="avatar">
         <img src="https://i.ibb.co.com/WvQngnDM/IMG-20260613-163402.jpg">
     </div>
+    <div class="border">
+    <img src="https://i.ibb.co.com/MyDfvN6M/file-00000000f86071fab5511d233bae19fa-removebg-preview.png" class="border-img">
+
+    <video class="border-fx" autoplay muted loop playsinline>
+        <source src="Border-1.mp4" type="video/mp4">
+       </video>
+  </div>
     <div class="name">RIFQY</div>
     <div class="verify">
       <img src="https://i.ibb.co.com/Wv123jL6/New-Project-91-CAD5-C03.png" alt="vetify">
